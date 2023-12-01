@@ -18,9 +18,10 @@ public:
 
     /** Default Constructor **/
     minheap();
+    ~minheap();
 
     /** Public Methods **/
-    void init(int size);  // Initialize the min-heap with a given size
+    void init(int cap);  // Initialize the min-heap with a given size
     void push(double key, int value);
     int pop();
     bool empty() const;
