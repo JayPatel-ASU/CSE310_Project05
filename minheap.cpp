@@ -74,10 +74,11 @@ int minheap::pop() {
     }
 
     // Get return value
-    double returnVal = keys[0];
+    //double returnVal = keys[0];
+    double returnVal = values[0];
 
     // Replace root w/ last elem
-    keys[0] = keys[size-1];
+    //keys[0] = keys[size-1];
     values[0] = values[size - 1];
 
     // Decrement size & call heapify down
