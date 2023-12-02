@@ -25,6 +25,7 @@ public:
     void push(double key, int value);
     int pop();
     bool empty() const;
+    void print();
 };
 
 #endif
