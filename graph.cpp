@@ -33,7 +33,7 @@ Graph::~Graph() {
     delete distance;
 
     // Free individual adjacency lists
-    for (int i = 0; i < numVertices i++) {
+    for (int i = 0; i < numVertices; i++) {
         delete adjacencyLists[i];
     }
 
@@ -219,19 +219,19 @@ void Graph::runDijkstra(int newSource, int destination, int flag) {
     extracted[source] = true;
 
     // Initialize the MinHeap data structure
-    minheap.init(n);
+    minHeap.init(n);
     distance[source] = 0;
-    minheap.push(0, source);
+    minHeap.push(0, source);
 
     // If flag is set, print initial insertion
     if (flag == 1) {
-        printf("Insert vertex ", source, ", key=", distance[source]);
+        cout <<"Insert vertex " << source << ", key=" << distance[source] << endl;
     }
 
     // Main Dijkstra's algorithm loop
-    while (!minheap.empty()) {
+    while (!minHeap.empty()) {
         // Extract the minimum distance vertex from the MinHeap
-        int u = minheap.pop();
+        int u = minHeap.pop();
 
         // Mark the vertex as extracted
         extracted[u] = true;
@@ -239,7 +239,7 @@ void Graph::runDijkstra(int newSource, int destination, int flag) {
 
         // If flag is set, print deletion of vertex
         if (flag == 1)
-            printf("Delete vertex ", u, ", key=", distance[u]);
+            cout <<"Delete vertex " << u << ", key=" << distance[u] << endl;
 
         // If the destination is reached, exit the loop
         if (u == destination)
@@ -263,14 +263,14 @@ void Graph::runDijkstra(int newSource, int destination, int flag) {
 
                     // If flag is set, print decrease key operation
                     if (oldDistance != DOUBLE_MAX && flag == 1)
-                        printf("Decrease key of vertex ", v, ", from ", oldDistance, " to ", distance[v]);
+                        cout <<"Decrease key of vertex " << v << ", from " << oldDistance << " to " << distance[v];
 
                     // Push the neighbor into the MinHeap
-                    minheap.push(distance[v], v);
+                    minHeap.push(distance[v], v);
 
                     // If flag is set, print insertion of vertex
                     if (flag == 1)
-                        printf("Insert vertex ", v, ", key=", distance[v]);
+                        cout << "Insert vertex " << v << ", key=" << distance[v];
                 }
                 j++;
             }
@@ -278,8 +278,8 @@ void Graph::runDijkstra(int newSource, int destination, int flag) {
     }
 
     // Handle vertices left in MinHeap after the main loop
-    while (!minheap.empty()) {
-        int u = minheap.pop();
+    while (!minHeap.empty()) {
+        int u = minHeap.pop();
         if (!extracted[u])
             fullTraversal = false;
     }
@@ -360,10 +360,10 @@ void Graph::writePath(int s, int d) {
         cout << endl;
 
         // Print the path weight
-        cout << "The path weight is: ", distance[d];
+        cout << "The path weight is: " << distance[d];
 
         // Deallocate memory for the path array
-        delete[] path;
+        delete path;
     }
 
     // Case 3: No s-d path computed, and no min-heap operations were printed
@@ -399,7 +399,7 @@ void Graph::printAdjacencyLists() {
         }
 
         // Print the predecessor value for the current vertex
-        printf("Predecessor: " + predecessor[v]);
+        cout << "Predecessor: " << predecessor[v];
 
         // Move to the next line for the next vertex
         printf("\n");

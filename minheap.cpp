@@ -147,14 +147,3 @@ void minheap::heapifyDown(int index) {
 void minheap::swap(int i, int j) {
     std::swap(keys[i], keys[j]);
 }
-
-// TEST FUNCTION FOR OUTPUT
-void minheap::print() {
-    for (int i = 0; i < size; i++) {
-        std::cout << values[i] << " ";
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < size; i++) {
-        std::cout << keys[i] << " ";
-    }
-}

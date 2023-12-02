@@ -40,7 +40,7 @@ private:
     int* predecessor;           // Dynamic array for predecessors
     double* distance;           // Dynamic array for distances
 
-    minheap minheap;
+    minheap minHeap;
 };
 
 
