@@ -20,8 +20,8 @@ minheap::minheap() {
  * Description: Deallocates memory for any class variables
  */
 minheap::~minheap() {
-    delete keys;
-    delete values;
+    delete[] keys;
+    delete[] values;
 }
 
 /**
