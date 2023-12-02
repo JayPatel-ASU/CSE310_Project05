@@ -28,23 +28,28 @@ int main(int argc, char* argv[]) {
 
         // Check the type of query
         if (query == "find") {
+            int source, destination, flag;
             // Read source, destination, and flag from user
-            source, destination, flag = readInput()
+            cin >> source >> destination >> flag;
 
             // Run Dijkstra's algorithm on the graph
-            graph.runDijkstra(source, destination, flag)
+            graph->runDijkstra(source, destination, flag);
         }
 
         //
         else if (query == "write"){
+            string action;
+            int source, destination;
+
             // Read action, source, and destination from user
-            action, source, destination = readInput()
+            cin >> action >> source >> destination;
 
             // Write the path based on the action
-            graph.writePath(source, destination)
+            graph->writePath(source, destination);
         }
 
         else if (query == "stop") {
+            delete graph;
             // Exit the program
             return 0;
         }
@@ -54,6 +59,4 @@ int main(int argc, char* argv[]) {
             cout << "Invalid query. Please use 'find', 'write', or 'stop'.";
         }
     }
-
-    return 0;
 }
