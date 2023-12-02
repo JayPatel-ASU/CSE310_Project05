@@ -1,5 +1,5 @@
+#include <iostream>
 #include "graph.h"
-#include "minheap.h"
 
 using namespace std;
 const double DOUBLE_MAX = 99999999.0;
@@ -8,20 +8,37 @@ const double DOUBLE_MAX = 99999999.0;
  *
  */
 Graph::Graph() {
-    // Constructor implementation
-    // set pointers to nullptr
-    // set variables to default values
+    // Set pointers to nullptr
+    adjacencyLists = nullptr;
+    extractedVertices = nullptr;
+    relaxedVertices = nullptr;
+    predecessor = nullptr;
+    distance = nullptr;
+
+    // Set variables to default values
     // Initialize numVertices, numEdges, and isDirected
+    numVertices = 0;
+    numEdges = 0;
+    isDirected = false;
 }
 
 /**
  *
  */
 Graph::~Graph() {
-    // Destructor implementation
-    // deallocate memory for arrays
+    // Delete memory allocated to arrays
+    delete extractedVertices;
+    delete relaxedVertices;
+    delete predecessor;
+    delete distance;
+
     // Free individual adjacency lists
+    for (int i = 0; i < numVertices i++) {
+        delete adjacencyLists[i];
+    }
+
     // Free the vector of adjacency lists
+    delete adjacencyLists;
 }
 
 /**
@@ -31,315 +48,360 @@ Graph::~Graph() {
  * @return
  */
 bool Graph::loadGraph(const string& filename, const string& direction) {
-    /*
+
     // Open the input file
-    file = open(filename)
+    ifstream file(filename);
 
     // Check if the file is successfully opened
-    if file is not open
-        print "Failed to open the graph file."
-        return false
+    if (!file.is_open()) {
+        printf("Failed to open the graph file.");
+        return false;
+    }
 
     // Read the first line from the file
-    line = readLine(file)
+    string line;
+    getline(file, line);
 
     // Check if the first line is successfully read
-    if not line
-        print "Input file is empty."
-        return false
+    if (line.empty()) {
+        printf("Input file is empty.");
+        return false;
+    }
 
     // Parse the first line to get the number of vertices and edges
-    iss = createStringStream(line)
-    n, m = 0, 0
-    if iss >> n >> m
-        numVertices = n + 1
-        numEdges = m
+    istringstream iss(line);
+    int n = 0;
+    int m = 0;
+
+    if (iss >> n >> m) {
+        numVertices = n + 1;
+        numEdges = m;
 
         // Allocate memory for adjacencyLists
-        adjacencyLists = new Edge*[numVertices]
-        for i from 0 to numVertices - 1
-            adjacencyLists[i] = null
+        adjacencyLists = new Edge*[numVertices];
+
+        for (int i = 0; i < numVertices - 1; i++){
+            adjacencyLists[i] = nullptr;
+        }
 
         // Allocate memory for extractedVertices, relaxedVertices, predecessor, and distance
-        extractedVertices = new double[numVertices]
-        relaxedVertices = new double[numVertices]
-        predecessor = new int[numVertices]
-        distance = new double[numVertices]
-        for i from 0 to numVertices - 1
-            extractedVertices[i] = -1
-            relaxedVertices[i] = -1
+        extractedVertices = new double[numVertices];
+        relaxedVertices = new double[numVertices];
+        predecessor = new int[numVertices];
+        distance = new double[numVertices];
 
-    else
-        print "Invalid format for the first line in the input file."
-        return false
+        for (int i = 0; i < numVertices - 1; i++) {
+            extractedVertices[i] = -1;
+            relaxedVertices[i] = -1;
+        }
+    }
+
+    else {
+        printf("Invalid format for the first line in the input file.");
+        return false;
+    }
 
     // Close the file and reopen it to read the content again
-    close(file)
-    file = open(filename)
+    file.close();
+
+    file.open(filename);
 
     // Check if the file is successfully reopened
-    if file is not open
-        print "Failed to reopen the graph file."
-        return false
+    if (!file.is_open()) {
+        printf("Failed to reopen the graph file.\n");
+        return false;
+    }
 
     // Read the first line again to skip it
-    readLine(file)
+    getline(file, line);
 
     // Loop through the remaining lines to read edges and build adjacency lists
-    for each line in file
-        edgeId, startNode, endNode, weight = 0, 0, 0, 0
-        iss = createStringStream(line)
+    while (getline(file,line)) {
+        int edgeId, startNode, endNode, weight = 0;
+        istringstream iss(line);
 
         // Parse the line to get edge information
-        if iss >> edgeId >> startNode >> endNode >> weight
-            startNode++
-            endNode++
+        if (iss >> edgeId >> startNode >> endNode >> weight) {
+            startNode++;
+            endNode++;
 
             // Check if node IDs are valid
-            if startNode > numVertices or endNode > numVertices or startNode < 1 or endNode < 1
-                print "Invalid node IDs in the input file."
-                return false
+            if (startNode > numVertices or endNode > numVertices or startNode < 1 or endNode < 1) {
+                printf("Invalid node IDs in the input file.\n");
+                return false;
+            }
 
             // Create a new edge
-            edge = new Edge
-            edge.destination = endNode
-            edge.weight = weight
+            Edge* edge = new Edge;
+            edge->destination = endNode;
+            edge->weight = weight;
 
             // Add edge to the adjacency list
-            if adjacencyLists[startNode] is null
-                adjacencyLists[startNode] = new Edge[numEdges]
+            if (adjacencyLists[startNode] == nullptr)
+                adjacencyLists[startNode] = new Edge[numEdges];
 
-            j = 0
+            int j = 0;
             // Find the next available slot in the adjacency list
-            while adjacencyLists[startNode][j].destination is not 0
-                j++
+            while (adjacencyLists[startNode][j].destination != 0)
+                j++;
 
             // Add the edge to the list
-            adjacencyLists[startNode][j] = edge
+            adjacencyLists[startNode][j] = *edge;
 
             // If the graph is undirected, add the reverse edge
-            if direction is "undirected"
-                reverseEdge = new Edge
-                reverseEdge.destination = startNode
-                reverseEdge.weight = weight
+            if (direction == "undirected") {
+                Edge* reverseEdge = new Edge;
+                reverseEdge->destination = startNode;
+                reverseEdge->weight = weight;
 
-                if adjacencyLists[endNode] is null
-                    adjacencyLists[endNode] = new Edge[numEdges]
+                if (adjacencyLists[endNode] == nullptr)
+                    adjacencyLists[endNode] = new Edge[numEdges];
 
-                j = 0
+                j = 0;
                 // Find the next available slot in the adjacency list
-                while adjacencyLists[endNode][j].destination is not 0
-                    j++
+                while (adjacencyLists[endNode][j].destination != 0)
+                    j++;
 
                 // Add the reverse edge to the list
-                adjacencyLists[endNode][j] = reverseEdge
+                adjacencyLists[endNode][j] = *reverseEdge;
 
                 // Deallocate memory for the reverse edge
-                delete reverseEdge
+                delete reverseEdge;
+            }
 
             // Deallocate memory for the edge
-            delete edge
-
-        else
-            print "Invalid format for edge in the input file."
-            return false
+            delete edge;
+        }
+        else {
+            printf("Invalid format for edge in the input file.\n");
+            return false;
+        }
+    }
 
     // Set the graph direction
-    isDirected = (direction is "directed")
+    isDirected = (direction == "directed");
 
     // Close the file
-    close(file)
+    file.close();
 
-    return true
-
-    */
+    return true;
 }
 
+/**
+ *
+ * @param newSource
+ * @param destination
+ * @param flag
+ */
 void Graph::runDijkstra(int newSource, int destination, int flag) {
-    /*
+
     // Initialize variables and data structures
-    n = numVertices
-    source = newSource
-    graphTraversed = true
-    fullTraversal = true
+    int n = numVertices;
+    source = newSource;
+    graphTraversed = true;
+    fullTraversal = true;
 
     // Create arrays and data structures for Dijkstra's algorithm
-    extracted = new bool[n]
-    for i = 0 to n-1
-        extracted[i] = false
-        extractedVertices[i] = -1
-        relaxedVertices[i] = -1
-        predecessor[i] = -1
-        distance[i] = DOUBLE_MAX
+    bool* extracted = new bool[n];
+
+    //TODO -- DOES EXTRACTEDVERTICES AND RELAXEDVERTICES NEED TO BE ALLOCATED HERE?
+
+    // Populate extracted arr, vertices
+    for (int i = 0; i < n-1; i++) {
+        extracted[i] = false;
+        extractedVertices[i] = -1;
+        relaxedVertices[i] = -1;
+        predecessor[i] = -1;
+        distance[i] = DOUBLE_MAX;
+    }
 
     // Mark the source as extracted
-    extracted[source] = true
+    extracted[source] = true;
 
     // Initialize the MinHeap data structure
-    minHeap.init(n)
-    distance[source] = 0
-    minHeap.push(0, source)
+    minheap.init(n);
+    distance[source] = 0;
+    minheap.push(0, source);
 
     // If flag is set, print initial insertion
-    if flag == 1
-        print "Insert vertex ", source, ", key=", distance[source]
+    if (flag == 1) {
+        printf("Insert vertex ", source, ", key=", distance[source]);
+    }
 
     // Main Dijkstra's algorithm loop
-    while minHeap is not empty
+    while (!minheap.empty()) {
         // Extract the minimum distance vertex from the MinHeap
-        u = minHeap.pop()
+        int u = minheap.pop();
 
         // Mark the vertex as extracted
-        extracted[u] = true
-        extractedVertices[u] = distance[u]
+        extracted[u] = true;
+        extractedVertices[u] = distance[u];
 
         // If flag is set, print deletion of vertex
-        if flag == 1
-            print "Delete vertex ", u, ", key=", distance[u]
+        if (flag == 1)
+            printf("Delete vertex ", u, ", key=", distance[u]);
 
         // If the destination is reached, exit the loop
-        if u == destination
-            break
+        if (u == destination)
+            break;
 
         // Loop through the adjacency list of the current vertex
-        if adjacencyLists[u]
-            j = 0
-            while adjacencyLists[u][j].destination != 0
+        if (adjacencyLists[u]) {
+            int j = 0;
+            while (adjacencyLists[u][j].destination != 0) {
                 // Extract neighbor information
-                v = adjacencyLists[u][j].destination
-                w = adjacencyLists[u][j].weight
+                int v = adjacencyLists[u][j].destination;
+                double w = adjacencyLists[u][j].weight;
 
                 // If the neighbor is not extracted and relaxation is possible
-                if not extracted[v] and distance[u] + w < distance[v]
+                if (!extracted[v] && distance[u] + w < distance[v]) {
                     // Perform relaxation
-                    oldDistance = distance[v]
-                    distance[v] = distance[u] + w
-                    predecessor[v] = u
-                    relaxedVertices[v] = distance[v]
+                    double oldDistance = distance[v];
+                    distance[v] = distance[u] + w;
+                    predecessor[v] = u;
+                    relaxedVertices[v] = distance[v];
 
                     // If flag is set, print decrease key operation
-                    if oldDistance != DOUBLE_MAX and flag == 1
-                        print "Decrease key of vertex ", v, ", from ", oldDistance, " to ", distance[v]
+                    if (oldDistance != DOUBLE_MAX && flag == 1)
+                        printf("Decrease key of vertex ", v, ", from ", oldDistance, " to ", distance[v]);
 
                     // Push the neighbor into the MinHeap
-                    minHeap.push(distance[v], v)
+                    minheap.push(distance[v], v);
 
                     // If flag is set, print insertion of vertex
-                    if flag == 1
-                        print "Insert vertex ", v, ", key=", distance[v]
-
-                j++
+                    if (flag == 1)
+                        printf("Insert vertex ", v, ", key=", distance[v]);
+                }
+                j++;
+            }
+        }
+    }
 
     // Handle vertices left in MinHeap after the main loop
-    while minHeap is not empty
-        u = minHeap.pop()
-        if extracted[u] is false
-            fullTraversal = false
-
+    while (!minheap.empty()) {
+        int u = minheap.pop();
+        if (!extracted[u])
+            fullTraversal = false;
+    }
     // Deallocate memory for extracted array
-    delete[] extracted
-
-    */
+    delete[] extracted;
 }
 
+/**
+ *
+ * @param s
+ * @param d
+ */
 void Graph::writePath(int s, int d) {
-    /*
+
     // Check if the graph has been traversed
-    if graphTraversed is false
-        print "Error: no path computation done"
-        return
+    if (!graphTraversed) {
+        cout << "Error: no path computation done" << endl;
+        return;
+    }
 
     // Check for valid source-destination pair
-    if s is not equal to source or d is less than 1 or d is greater than or equal to numVertices
-        print "Error: invalid source destination pair"
-        return
+    if (s != source || d < 1 || d >= numVertices) {
+        cout << "Error: invalid source destination pair" << endl;
+        return;
+    }
 
     // Case 1: Shortest s-d path is computed
-    if extractedVertices[d] is not equal to -1
+    if (extractedVertices[d] != -1) {
         // Create an array to store the path
-        path = new int[numVertices]
-        current = d
-        pathSize = 0
+        int *path = new int[numVertices];
+        int current = d;
+        int pathSize = 0;
 
         // Reconstruct the path
-        while current is not equal to s
-            path[pathSize] = current
-            current = predecessor[current]
-            pathSize++
+        while (current != s) {
+            path[pathSize] = current;
+            current = predecessor[current];
+            pathSize++;
+        }
 
-        path[pathSize] = s
+        path[pathSize] = s;
 
         // Print the shortest path
-        print "Shortest path: "
-        for i from pathSize to 0
-            print path[i], " "
-        print newline
+        cout << "Shortest path: ";
+        //  TODO CHECK??
+        for (int i = pathSize; pathSize != 0; i--)
+            cout << path[i] << " ";
+        cout << endl;
 
         // Print the path weight
-        print "The path weight is: ", distance[d]
+        cout << "The path weight is: " << distance[d] << "\n";
 
         // Deallocate memory for the path array
-        delete[] path
+        delete[] path;
+    }
 
     // Case 2: s-d path computed but not known if it's the shortest
-    else if relaxedVertices[d] is not equal to -1
+    else if (relaxedVertices[d] != -1) {
         // Create an array to store the path
-        path = new int[numVertices]
-        current = d
-        pathSize = 0
+        int* path = new int[numVertices];
+        int current = d;
+        int pathSize = 0;
 
         // Reconstruct the path
-        while current is not equal to s
-            path[pathSize] = current
-            current = predecessor[current]
-            pathSize++
+        while (current != s) {
+            path[pathSize] = current;
+            current = predecessor[current];
+            pathSize++;
+        }
 
-        path[pathSize] = s
+        path[pathSize] = s;
 
         // Print the path not known to be the shortest
-        print "Path not known to be shortest: "
-        for i from pathSize to 0
-            print path[i], " "
-        print newline
+        cout <<"Path not known to be shortest: ";
+        for (int i = pathSize; pathSize != 0; i--) {
+            cout << path[i] << " ";
+        }
+        cout << endl;
 
         // Print the path weight
-        print "The path weight is: ", distance[d]
+        cout << "The path weight is: ", distance[d];
 
         // Deallocate memory for the path array
-        delete[] path
+        delete[] path;
+    }
 
     // Case 3: No s-d path computed, and no min-heap operations were printed
-    else if fullTraversal is false
-        print "No ", s, "-", d, " path has been computed, yet."
+    else if (!fullTraversal) {
+        cout << "No " << s << "-" << d << " path has been computed, yet.";
+    }
 
     // Case 4: Entire graph has been traversed, and d is not in extracted or relaxed
-    else
-        print "No ", s, "-", d, " path exists."
-    */
+    else {
+        cout << "No " << s << "-" << d << " path exists.";
+    }
 }
 
+/**
+ *
+ */
 void Graph::printAdjacencyLists() {
-    /*
-    // Loop through each vertex in the graph
-    for v from 0 to numVertices - 1
-        print "Adjacency list for vertex " + v + ": "
+
+    for (int v = 0; v < numVertices - 1; v++) {
+        cout << "Adjacency list for vertex " << v << ": ";
 
         // Check if the adjacency list for the current vertex exists
-        if adjacencyLists[v] is not null
-            j = 0
+        if (adjacencyLists[v] != nullptr) {
+            int j = 0;
 
             // Loop through each edge in the adjacency list
-            while adjacencyLists[v][j].destination is not 0
+            while (adjacencyLists[v][j].destination != 0) {
                 // Print the destination vertex and edge weight
-                print "(" + adjacencyLists[v][j].destination + ", " + adjacencyLists[v][j].weight + ") "
-
+                cout << "(" << adjacencyLists[v][j].destination << ", " << adjacencyLists[v][j].weight << ")" << endl;
                 // Move to the next edge in the list
-                j++
+                j++;
+            }
+        }
 
         // Print the predecessor value for the current vertex
-        print "Predecessor: " + predecessor[v]
+        printf("Predecessor: " + predecessor[v]);
 
         // Move to the next line for the next vertex
-        print newline
-    */
+        printf("\n");
+    }
 }

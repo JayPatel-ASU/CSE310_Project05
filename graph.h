@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <string>
 
+#include "minheap.h"
+
 using namespace std;
 
 class Graph {
