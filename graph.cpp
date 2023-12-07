@@ -15,10 +15,12 @@ Graph::Graph() {
     predecessor = nullptr;
     distance = nullptr;
 
-    // Set variables to default values
-    // Initialize numVertices, numEdges, and isDirected
+    // Initialize all other class instance variables
+    source = 0;
     numVertices = 0;
     numEdges = 0;
+    graphTraversed = false;
+    fullTraversal = false;
     isDirected = false;
 }
 
@@ -38,7 +40,7 @@ Graph::~Graph() {
     }
 
     // Free the vector of adjacency lists
-    delete adjacencyLists;
+    delete[] adjacencyLists;
 }
 
 /**
@@ -54,7 +56,7 @@ bool Graph::loadGraph(const string& filename, const string& direction) {
 
     // Check if the file is successfully opened
     if (!file.is_open()) {
-        printf("Failed to open the graph file.");
+        printf("Failed to open the graph file.\n");
         return false;
     }
 
@@ -64,7 +66,7 @@ bool Graph::loadGraph(const string& filename, const string& direction) {
 
     // Check if the first line is successfully read
     if (line.empty()) {
-        printf("Input file is empty.");
+        printf("Input file is empty.\n");
         return false;
     }
 
@@ -80,7 +82,7 @@ bool Graph::loadGraph(const string& filename, const string& direction) {
         // Allocate memory for adjacencyLists
         adjacencyLists = new Edge*[numVertices];
 
-        for (int i = 0; i < numVertices - 1; i++){
+        for (int i = 0; i < numVertices; i++){
             adjacencyLists[i] = nullptr;
         }
 
@@ -90,7 +92,7 @@ bool Graph::loadGraph(const string& filename, const string& direction) {
         predecessor = new int[numVertices];
         distance = new double[numVertices];
 
-        for (int i = 0; i < numVertices - 1; i++) {
+        for (int i = 0; i < numVertices; i++) {
             extractedVertices[i] = -1;
             relaxedVertices[i] = -1;
         }
@@ -117,8 +119,8 @@ bool Graph::loadGraph(const string& filename, const string& direction) {
 
     // Loop through the remaining lines to read edges and build adjacency lists
     while (getline(file,line)) {
-        double weight = 0;
-        int edgeId, startNode, endNode = 0;
+        double weight;
+        int edgeId, startNode, endNode;
         istringstream iss(line);
 
         // Parse the line to get edge information
@@ -239,12 +241,14 @@ void Graph::runDijkstra(int newSource, int destination, int flag) {
         extractedVertices[u] = distance[u];
 
         // If flag is set, print deletion of vertex
-        if (flag == 1)
+        if (flag == 1) {
             printf("Delete vertex %d, key=%12.4f\n", u, distance[u]);
+        }
 
         // If the destination is reached, exit the loop
-        if (u == destination)
+        if (u == destination) {
             break;
+        }
 
         // Loop through the adjacency list of the current vertex
         if (adjacencyLists[u] != nullptr) {
@@ -281,8 +285,9 @@ void Graph::runDijkstra(int newSource, int destination, int flag) {
     // Handle vertices left in MinHeap after the main loop
     while (!minHeap.empty()) {
         int u = minHeap.pop();
-        if (!extracted[u])
+        if (extracted[u] == false) {
             fullTraversal = false;
+        }
     }
     // Deallocate memory for extracted array
     delete[] extracted;
@@ -294,7 +299,6 @@ void Graph::runDijkstra(int newSource, int destination, int flag) {
  * @param d
  */
 void Graph::writePath(int s, int d) {
-
     // Check if the graph has been traversed
     if (!graphTraversed) {
         cout << "Error: no path computation done" << endl;
@@ -325,22 +329,21 @@ void Graph::writePath(int s, int d) {
 
         // Print the shortest path
         cout << "Shortest path: ";
-
-        for (int i = pathSize; pathSize >= 0; i--)
+        for (int i = pathSize; i >= 0; i--) {
             cout << path[i] << " ";
-        cout << endl;
+            cout << endl;
 
-        // Print the path weight
-        printf("The path weight is: %12.4f\n", distance[d]);
+            // Print the path weight
+            printf("The path weight is: %12.4f\n", distance[d]);
 
-        // Deallocate memory for the path array
-        delete[] path;
+            // Deallocate memory for the path array
+            delete[] path;
+        }
     }
-
     // Case 2: s-d path computed but not known if it's the shortest
     else if (relaxedVertices[d] != -1) {
         // Create an array to store the path
-        int* path = new int[numVertices];
+        int *path = new int[numVertices];
         int current = d;
         int pathSize = 0;
 
@@ -354,8 +357,8 @@ void Graph::writePath(int s, int d) {
         path[pathSize] = s;
 
         // Print the path not known to be the shortest
-        cout <<"Path not known to be shortest: ";
-        for (int i = pathSize; pathSize != 0; i--) {
+        cout << "Path not known to be shortest: ";
+        for (int i = pathSize; i >= 0; i--) {
             cout << path[i] << " ";
         }
         cout << endl;
@@ -369,21 +372,22 @@ void Graph::writePath(int s, int d) {
 
     // Case 3: No s-d path computed, and no min-heap operations were printed
     else if (!fullTraversal) {
-        cout << "No " << s << "-" << d << " path has been computed, yet.";
+        cout << "No " << s << "-" << d << " path has been computed, yet." << endl;
     }
 
     // Case 4: Entire graph has been traversed, and d is not in extracted or relaxed
     else {
-        cout << "No " << s << "-" << d << " path exists.";
+        cout << "No " << s << "-" << d << " path exists." << endl;
     }
 }
+
 
 /**
  * printAdjacencyLists()
  */
 void Graph::printAdjacencyLists() {
 
-    for (int v = 0; v < numVertices - 1; v++) {
+    for (int v = 0; v < numVertices; v++) {
         cout << "Adjacency list for vertex " << v << ": ";
 
         // Check if the adjacency list for the current vertex exists

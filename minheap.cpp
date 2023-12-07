@@ -20,8 +20,10 @@ minheap::minheap() {
  * Description: Deallocates memory for any class variables
  */
 minheap::~minheap() {
-    delete[] keys;
-    delete[] values;
+    if (values != nullptr)
+        delete values;
+    if (keys != nullptr)
+        delete keys;
 }
 
 /**
@@ -104,10 +106,11 @@ bool minheap::empty() const {
  */
 void minheap::heapifyUp(int index) {
 
-    //
     while (index > 0 && keys[index] < keys[index / 2]) {
-        // Swap index w/ parent, then
-        std::swap(keys[index], keys[(index) / 2]);
+        // Swap index w/ parent
+        swap(index, index/2);
+        //swap(keys[index], keys[index / 2]);
+        //swap(values[index], values[index / 2]);
         index = index / 2;
     }
 }
@@ -133,8 +136,9 @@ void minheap::heapifyDown(int index) {
 
     // Swap values in array, then call heapifydown
     if (smallest != index) {
-        std::swap(values[index], values[smallest]);
-        std::swap(keys[index], keys[smallest]);
+        swap(index,smallest);
+        //swap(values[index], values[smallest]);
+        //swap(keys[index], keys[smallest]);
         heapifyDown(smallest);
     }
 }
@@ -146,5 +150,12 @@ void minheap::heapifyDown(int index) {
  * @param j - Second index to swap
  */
 void minheap::swap(int i, int j) {
-    std::swap(keys[i], keys[j]);
+    double temp = keys[i];
+    keys[i] = keys[j];
+    keys[j] = temp;
+
+    // Swap values at positions i and j
+    int temp2 = values[i];
+    values[i] = values[j];
+    values[j] = temp2;
 }
